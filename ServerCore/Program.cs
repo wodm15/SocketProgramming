@@ -10,27 +10,9 @@ namespace ServerCore
     class Program
     {
         static Listener _listener = new Listener();
-        static void Main(string[] args)
+        static void OnAcceptHandler(Socket clientSocket)
         {
-            // DNS
-            string host = Dns.GetHostName();
-            IPHostEntry ipHost = Dns.GetHostEntry(host); // DNS의 호스트 엔트리는 여러 개일 수 있음
-            IPAddress ipAddr = ipHost.AddressList[0]; // IP 주소는 식당 전체를 나타냄
-            IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777); // 포트는 앞문인지 정문인지 결정
-
-
-            try
-            {
-                _listener.Init(endPoint);
-
-                while (true)
-                {
-                    System.Console.WriteLine("listening...");
-
-                    // 손님 입장
-                    Socket clientSocket = _listener.Accept();
-
-                    // 받는다
+            try{
                     byte[] recvBuff = new byte[1024];
                     int recvBytes = clientSocket.Receive(recvBuff);
                     string recvData = Encoding.UTF8.GetString(recvBuff, 0, recvBytes);
@@ -43,12 +25,26 @@ namespace ServerCore
                     // 연결 종료
                     clientSocket.Shutdown(SocketShutdown.Both);
                     clientSocket.Close();
-                }
+            }catch (Exception e){
+                System.Console.WriteLine(e);
             }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine(ex.ToString());
+        }
+        static void Main(string[] args)
+        {
+            // DNS
+            string host = Dns.GetHostName();
+            IPHostEntry ipHost = Dns.GetHostEntry(host); // DNS의 호스트 엔트리는 여러 개일 수 있음
+            IPAddress ipAddr = ipHost.AddressList[0]; // IP 주소는 식당 전체를 나타냄
+            IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777); // 포트는 앞문인지 정문인지 결정
+
+
+            _listener.Init(endPoint , OnAcceptHandler);
+
+                while (true)
+                {
+                   ;
+                }
             }
         }
     }
-}
+

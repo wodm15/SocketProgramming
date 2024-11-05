@@ -9,6 +9,8 @@ namespace ServiceCore
     {
         static void Main(string[] args)
         {
+            while(true)
+            {
              //DNS
             string host = Dns.GetHostName();
             IPHostEntry ipHost = Dns.GetHostEntry(host); // dns의 호스트엔트리는 여러 개일 수 있음
@@ -42,6 +44,8 @@ namespace ServiceCore
                 System.Console.WriteLine(e.ToString());
             }
             
+            Thread.Sleep(100);
+            }
         }
             
     }
