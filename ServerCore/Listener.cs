@@ -10,12 +10,12 @@ namespace ServerCore
     class Listener
     {
         private Socket _listenSocket;
-        Action<Socket> _onAcceptHandler; // 비동기로 손님이 입장하면 그 다음걸 액션취하기 위함.
+        Func<Session> _sessionFactory;
 
-        public void Init(IPEndPoint endPoint , Action<Socket> onAcceptHandler)
+        public void Init(IPEndPoint endPoint , Func<Session> _sessionFactory)
         {
             _listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp); // 주소 체계 + 통신 방법
-            _onAcceptHandler += onAcceptHandler;
+            _sessionFactory = sessionFactory;
             
             // 문지기 교육
             _listenSocket.Bind(endPoint); // IP 주소와 포트 번호 바인드
@@ -41,7 +41,9 @@ namespace ServerCore
         {
             if(args.SocketError == SocketError.Success)
             {
-                _onAcceptHandler?.Invoke(args.AcceptSocket);
+                Session session = _sessionFactory.Invoke();
+                session.Start(args.AcceptSocket);
+                session.OnConnected(args.AcceptSocket.RemoteEndPoint);
             }
             else
                 System.Console.WriteLine(args.SocketError.ToString());
