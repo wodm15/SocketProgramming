@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace ServerCore
 {
-    abstract class Session
+    public abstract class Session
     {
         Socket _socket = null!;
         int _disconnected = 0;
@@ -119,7 +119,7 @@ namespace ServerCore
             {
                 try
                 {
-                    OnRecv(new ArrarySegment<byte>(args.Buffer, args.Offset, args.BytesTransferred));
+                    OnRecv(new ArraySegment<byte>(args.Buffer, args.Offset, args.BytesTransferred));
                     RegisterRecv(); // 매개변수 없이 호출하여 다음 수신 대기
                 }
                 catch (Exception e)

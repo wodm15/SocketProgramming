@@ -7,12 +7,12 @@ using System.Net.Sockets;
 
 namespace ServerCore
 {
-    class Listener
+    public class Listener
     {
         private Socket _listenSocket;
         Func<Session> _sessionFactory;
 
-        public void Init(IPEndPoint endPoint , Func<Session> _sessionFactory)
+        public void Init(IPEndPoint endPoint , Func<Session> sessionFactory)
         {
             _listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp); // 주소 체계 + 통신 방법
             _sessionFactory = sessionFactory;
