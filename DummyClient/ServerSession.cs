@@ -2,82 +2,34 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
-using System.Net.Sockets;
-using System.Threading;
 using ServerCore;
 
 namespace DummyClient
 {
-	class Packet
-	{
-		public ushort size;
-		public ushort packetId;
-	}
-
-	class PlayerInfoReq : Packet
-	{
-		public long playerId;
-	}
-
-	class PlayerInfoOk : Packet
-	{
-		public int hp;
-		public int attack;
-	}
-
-	public enum PacketID
-	{
-		PlayerInfoReq = 1,
-		PlayerInfoOk = 2,
-	}
-
 	class ServerSession : Session
 	{
-		static unsafe void ToBytes(byte[] array, int offset, ulong value)
-		{
-			fixed (byte* ptr = &array[offset])
-				*(ulong*)ptr = value;
-		}
-
-		static unsafe void ToBytes<T>(byte[] array, int offset, T value) where T : unmanaged
-		{
-			fixed (byte* ptr = &array[offset])
-				*(T*)ptr = value;
-		}
-
 		public override void OnConnected(EndPoint endPoint)
 		{
 			Console.WriteLine($"OnConnected : {endPoint}");
 
-			PlayerInfoReq packet = new PlayerInfoReq() { size = 4, packetId = (ushort)PacketID.PlayerInfoReq, playerId = 1001 };
+			C_PlayerInfoReq packet = new C_PlayerInfoReq() { playerId = 1001, name = "ABCD" };
+			
+			var skill = new C_PlayerInfoReq.Skill() { id = 101, level = 1, duration = 3.0f };
+			skill.attributes.Add(new C_PlayerInfoReq.Skill.Attribute() { att = 77 });
+			packet.skills.Add(skill);
 
+			packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 201, level = 2, duration = 4.0f });
+			packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 301, level = 3, duration = 5.0f });
+			packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 401, level = 4, duration = 6.0f });
 
 			// 보낸다
-			for (int i = 0; i < 5; i++)
+			//for (int i = 0; i < 5; i++)
 			{
-				ArraySegment<byte> s = SendBufferHelper.Open(4096);
-				//byte[] size = BitConverter.GetBytes(packet.size);
-				//byte[] packetId = BitConverter.GetBytes(packet.packetId);
-				//byte[] playerId = BitConverter.GetBytes(packet.playerId);
-
-				ushort size = 0;
-				bool success = true;
-			
-				size += 2;
-				success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset + size, s.Count - size), packet.packetId);
-				size += 2;
-				success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset + size, s.Count - size), packet.playerId);
-				size += 8;
-				success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset, s.Count), size);
-
-				ArraySegment<byte> sendBuff = SendBufferHelper.Close(size);
-
-				if (success)
-					Send(sendBuff);
+				ArraySegment<byte> s = packet.Write();
+				if (s != null)
+					Send(s);
 			}
 		}
-
-	
 
 		public override void OnDisconnected(EndPoint endPoint)
 		{
@@ -96,5 +48,4 @@ namespace DummyClient
 			Console.WriteLine($"Transferred bytes: {numOfBytes}");
 		}
 	}
-
 }
